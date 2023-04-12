@@ -23,6 +23,65 @@ library("org.Hs.eg.db")
 gene_list <- read_delim ("./data/processed/gene_lists_merged.txt") %>%
   dplyr::select(gene_symbol, JAX, MSK, NWU, UCSF)
 
+
+
+
+# retrieve only the annotations -------------------------------------------
+
+
+genes_entrez <- read_delim("http://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/tsv/locus_types/gene_with_protein_product.txt") %>%
+  dplyr::select(hgnc_id, entrez_id) %>%
+  mutate(entrez_id = as.character(entrez_id))
+
+gene_list_entrez <- gene_list %>%
+  left_join(genes_entrez)
+
+go_anot <- toTable(org.Hs.egGO) %>%
+  filter(gene_id %in% gene_list_entrez$entrez_id) %>%
+  dplyr::select(gene_id, go_id, Ontology) %>%
+  distinct()
+
+keys <- unique(go_anot$go_id)
+
+go_terms <- AnnotationDbi::select(GO.db, keys = keys, keytype="GOID", columns=c("TERM") ) %>%
+  dplyr::rename(go_id = GOID,
+                go_term = TERM)
+
+go_anot_term <- go_anot %>%
+  left_join(go_terms) %>%
+  group_by(gene_id, Ontology) %>%
+  summarise(go_ids = paste0(go_id, collapse = "|"),
+            go_terms = paste0(go_term, collapse = "|")) %>%
+  pivot_wider(names_from = Ontology,
+              values_from = c("go_ids","go_terms")) %>%
+  dplyr::select(gene_id, go_ids_BP, go_terms_BP,
+                go_ids_MF, go_terms_MF,
+                go_ids_CC, go_terms_CC)%>%
+  replace(is.na(.),"-")
+
+
+hgnc_symbol <- read_delim("./data/processed/gene_lists_merged_impc_cells_data_disease.txt",
+                          delim = "\t") %>%
+  dplyr::select(hgnc_id, gene_symbol)
+
+list_go_anot <- gene_list_entrez %>%
+  left_join(go_anot_term, by = c("entrez_id" = "gene_id")) %>%
+  dplyr::select(-entrez_id) %>%
+  replace(is.na(.),"-")
+
+gene_list_go_hgnc <- hgnc_symbol %>%
+  left_join(list_go_anot) %>%
+  relocate(hgnc_id, gene_symbol)
+
+write.table(gene_list_go_hgnc,
+            "./data/processed/gene_list_go_annotations.txt", quote = F,
+            sep = "\t",row.names = F)
+
+
+# enrichment analysis -----------------------------------------------------
+
+
+
 genes_universe <- read_delim("http://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/tsv/locus_types/gene_with_protein_product.txt") %>%
   dplyr::select(symbol, entrez_id)
 

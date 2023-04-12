@@ -12,8 +12,8 @@ source("./scripts/auxiliary/hgnc_symbol_checker.R")
 # merge list, impc and mgi data -------------------------------------------
 
 hgnc <- read_delim("http://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/tsv/locus_types/gene_with_protein_product.txt") %>%
-  rename(gene_symbol = symbol, mgi_id = mgd_id) %>%
-  select(hgnc_id,mgi_id)%>%
+  dplyr::rename(gene_symbol = symbol, mgi_id = mgd_id) %>%
+  dplyr::select(hgnc_id,mgi_id)%>%
   separate_rows(mgi_id,sep ="\\|") %>%
   filter(!is.na(mgi_id)) 
 
@@ -26,8 +26,8 @@ hgnc_ortho_nodups <- hgnc %>%
   distinct()
 
 hgnc_symbol <- read_delim("http://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/tsv/locus_types/gene_with_protein_product.txt") %>% 
-  rename(gene_symbol = symbol) %>%
-  select(hgnc_id, gene_symbol) %>%
+  dplyr::rename(gene_symbol = symbol) %>%
+  dplyr::select(hgnc_id, gene_symbol) %>%
   filter(hgnc_id %in% hgnc_ortho_nodups$hgnc_id)
 
 one2one <- hgnc_ortho_nodups
@@ -51,16 +51,16 @@ replace(is.na(.),"-") %>%
 
 impc_pheno  <- read_delim("http://ftp.ebi.ac.uk/pub/databases/impc/all-data-releases/release-18.0/results/genotype-phenotype-assertions-ALL.csv.gz", 
                           delim = ",") %>%
-  select(marker_accession_id, zygosity,mp_term_name) %>%
+  dplyr::select(marker_accession_id, zygosity,mp_term_name) %>%
   distinct() %>%
-  rename(mgi_id = marker_accession_id, 
+  dplyr::rename(mgi_id = marker_accession_id, 
          impc_zygosity = zygosity, 
          impc_phenotype = mp_term_name) %>%
   group_by(mgi_id, impc_zygosity) %>%
   summarise(impc_phenotypes = paste0(unique(impc_phenotype), collapse = "|")) %>%
   pivot_wider(names_from = impc_zygosity, values_from = impc_phenotypes) %>%
   replace(is.na(.),"-") %>%
-  rename(impc_phenotypes_homozygote = homozygote,
+  dplyr::rename(impc_phenotypes_homozygote = homozygote,
          impc_phenotypes_heterozygote  = heterozygote,
          impc_phenotypes_hemizygote = hemizygote) %>%
   replace(is.na(.),"-")
@@ -73,7 +73,7 @@ list_impc <- list %>%
   left_join(impc_pheno)  %>%
   replace(is.na(.),"-") %>%
   mutate(one2one_ortholog_hgnc = ifelse(mgi_id == "-", "-","y")) %>%
-  select(gene_symbol:MSK_category, one2one_ortholog_hgnc, mgi_id,
+  dplyr::select(gene_symbol:MSK_category, one2one_ortholog_hgnc, mgi_id,
          impc_viability, impc_phenotypes_homozygote:impc_phenotypes_hemizygote) %>%
   replace(is.na(.),"-") 
 

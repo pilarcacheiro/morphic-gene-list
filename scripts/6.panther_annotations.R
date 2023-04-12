@@ -16,18 +16,18 @@ if (!require("tidyverse")) install.packages("tidyverse")
 library("tidyverse")
 
 
-if (!require("BiocManager", quietly = TRUE))
-  install.packages("BiocManager")
+#if (!require("BiocManager", quietly = TRUE))
+#  install.packages("BiocManager")
 
-BiocManager::install("PANTHER.db")
+#BiocManager::install("PANTHER.db")
 library("PANTHER.db")
 
 
 # import data -------------------------------------------------------------
 
 
-human_uniprot <- read_delim("./data/gene_with_protein_product.txt") %>%
-  dplyr::select (hgnc_id, uniprot_ids) %>%
+human_uniprot <-  read_delim("http://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/tsv/locus_types/gene_with_protein_product.txt")  %>%
+  dplyr::select(hgnc_id, uniprot_ids) %>%
   dplyr::rename(uniprot_id = uniprot_ids) %>%
   dplyr::distinct()
 
@@ -41,6 +41,10 @@ panther <- read_delim("./data/processed/pantherGeneList.txt",
                       delim = "\t",  col_names = FALSE) %>%
   dplyr::select("X2","X5") %>%
   dplyr::rename(uniprot_id = X2, protein_class = X5)
+
+hgnc_symbol <- read_delim("./data/processed/gene_lists_merged_impc_cells_data_disease.txt",
+                          delim = "\t") %>%
+  dplyr::select(hgnc_id, gene_symbol)
 
 
 # extract info from panther -----------------------------------------------
@@ -59,18 +63,18 @@ keys <- human_uniprot$uniprot_id
 
 kt <- "UNIPROT"
 
-select(PANTHER.db, keys, cols, kt)
+#select(PANTHER.db, keys, cols, kt)
 
-panther_annotation <- select(PANTHER.db, keys = "Q9UNA3", columns = cols, keytype = kt)
+#panther_annotation <- select(PANTHER.db, keys = "Q9UNA3", columns = cols, keytype = kt)
 
-panther_class <- panther_annotation %>%
-  dplyr::select(1,2,3) %>%
-  dplyr::rename(uniprot_id = UNIPROT,
-                class_id = CLASS_ID,
-                class_term = CLASS_TERM) %>%
-  dplyr::inner_join(human_uniprot) %>%
-  dplyr::relocate(hgnc_id) %>%
-  dplyr::distinct()
+#panther_class <- panther_annotation %>%
+#  dplyr::select(1,2,3) %>%
+#  dplyr::rename(uniprot_id = UNIPROT,
+#                class_id = CLASS_ID,
+#                class_term = CLASS_TERM) %>%
+#  dplyr::inner_join(human_uniprot) %>%
+#  dplyr::relocate(hgnc_id) %>%
+#  dplyr::distinct()
 
 term <- "PC00220"
 select(PANTHER.db,term, "CLASS_TERM","CLASS_ID")
@@ -91,6 +95,20 @@ gene_list_panther <- gene_list %>%
   filter(!is.na(protein_class))%>%
   dplyr::select(hgnc_id, JAX, MSK, NWU, UCSF, protein_class) 
 
+
+
+# annotations to export individually --------------------------------------
+
+
+gene_list_panther_hgnc <- hgnc_symbol %>%
+  left_join(gene_list_panther) %>%
+  relocate(hgnc_id, gene_symbol)
+
+
+write.table(gene_list_panther_hgnc,
+            "./data/processed/gene_list_panther_protein_class.txt", quote = F,
+            sep = "\t",row.names = F)
+
 gene_list_panther_export <- gene_list %>%
   inner_join(human_uniprot) %>%
   inner_join(panther ) %>%
@@ -100,6 +118,11 @@ gene_list_panther_export <- gene_list %>%
 write.table(gene_list_panther_export,
             "./data/processed/uniprot_centers.txt", quote = F,
             sep = "\t",row.names = F)
+
+
+# protein class analysis --------------------------------------------------
+
+
 
 gene_panther  <- gene_list_panther %>%
   dplyr::select(hgnc_id, protein_class)

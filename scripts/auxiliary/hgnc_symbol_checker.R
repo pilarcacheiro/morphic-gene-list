@@ -69,13 +69,13 @@ hgnc.checker <- function(gene_symbols, gene.file) {
     ## A function to check if the input matches an approved gene symbol
     
     return(database %>%
-             select(hgnc_id, symbol) %>%
+             dplyr::select(hgnc_id, symbol) %>%
              mutate_if(is.factor, as.character) %>%
              filter(symbol != "") %>%
              filter(!is.na(symbol)) %>%
              filter(symbol %in%
                       input.genes) %>%
-             rename(gene_symbol = symbol, hgnc_id = hgnc_id) %>%
+             dplyr::rename(gene_symbol = symbol, hgnc_id = hgnc_id) %>%
              mutate(type = "approved_symbol"))
   }
   
@@ -85,15 +85,15 @@ hgnc.checker <- function(gene_symbols, gene.file) {
     ## alias / synonym gene symbol
     
     return(database %>%
-             select(hgnc_id, alias_symbol) %>%
+             dplyr::select(hgnc_id, alias_symbol) %>%
              mutate_if(is.factor,
                        as.character) %>%
              filter(alias_symbol != "") %>%
              filter(!is.na(alias_symbol)) %>%
              separate_rows(alias_symbol, sep = "\\|") %>%
-             rename(hgnc_id = hgnc_id) %>%
+             dplyr::rename(hgnc_id = hgnc_id) %>%
              mutate(gene_symbol = trimws(alias_symbol)) %>%
-             select(hgnc_id, gene_symbol) %>%
+             dplyr::select(hgnc_id, gene_symbol) %>%
              filter(gene_symbol %in% input.genes) %>%
              mutate(type = "synonym_symbol"))
   }
@@ -104,13 +104,13 @@ hgnc.checker <- function(gene_symbols, gene.file) {
     ## official gene symbol
     
     return(database %>%
-             select(hgnc_id, prev_symbol) %>%
+             dplyr::select(hgnc_id, prev_symbol) %>%
              mutate_if(is.factor,
                        as.character) %>%
              filter(prev_symbol != "") %>%
              filter(!is.na(prev_symbol)) %>%
              separate_rows(prev_symbol, sep = "\\|") %>%
-             rename(hgnc_id = hgnc_id) %>%
+             dplyr::rename(hgnc_id = hgnc_id) %>%
              mutate(gene_symbol = trimws(prev_symbol)) %>%
              dplyr::select(hgnc_id,
                            gene_symbol) %>%

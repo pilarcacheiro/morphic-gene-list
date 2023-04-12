@@ -17,7 +17,7 @@ list_impc <- read_delim("./data/processed/gene_lists_merged_impc_cells_data.txt"
 # omim genes --------------------------------------------------------------
 
 omim <- read_delim("./data/raw/morbidmap_complete.txt", delim = "\t") %>%
-  select(hgnc_id, omim_title) %>%
+  dplyr::select(hgnc_id, omim_title) %>%
   distinct() %>%
   filter(hgnc_id !="-") %>%
   filter(!is.na(hgnc_id)) %>%
@@ -30,13 +30,13 @@ omim <- read_delim("./data/raw/morbidmap_complete.txt", delim = "\t") %>%
 # DD genes ----------------------------------------------------------------
 
 dd <- read_delim("./data/raw/DDG2P_7_3_2023.csv.gz", delim = ",") %>%
-  rename(hgnc = "hgnc id") %>%
+  dplyr::rename(hgnc = "hgnc id") %>%
   mutate(hgnc_id = paste0("HGNC:", hgnc)) %>%
   mutate(dd = "dd" ) %>%
-  rename(dd_name = "disease name",
+  dplyr::rename(dd_name = "disease name",
          dd_confidence_category = "confidence category",
          dd_allelic_requirement = "allelic requirement") %>%
-  select(hgnc_id, dd, dd_name, dd_confidence_category, dd_allelic_requirement) %>%
+  dplyr::select(hgnc_id, dd, dd_name, dd_confidence_category, dd_allelic_requirement) %>%
   group_by(hgnc_id) %>%
   summarise(dd = unique(dd), 
             dd_name = paste0(dd_name, collapse = "|"),

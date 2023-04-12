@@ -22,7 +22,7 @@ gene_list <- read_delim("./data/processed/gene_lists_merged_impc_cells_data_dise
 # overlap UpsetR
 
 gene_upset <- gene_list %>%
-  select(gene_symbol,JAX, MSK,NWU, UCSF) %>%
+  dplyr::select(gene_symbol,JAX, MSK,NWU, UCSF) %>%
   mutate(JAX  = ifelse(JAX == "JAX",1,0))%>%
   mutate(MSK  = ifelse(MSK == "MSK",1,0))%>%
   mutate(NWU  = ifelse(NWU == "NWU",1,0)) %>%
@@ -78,23 +78,23 @@ gene_mouse <- gene_list %>%
   filter(impc_viability !="-") %>%
   mutate(impc_viability_2 = ifelse(!impc_viability %in% c("lethal","subviable","viable"),
                                    "conflicting", impc_viability))  %>%
-  select(hgnc_id, impc_viability_2 )
+  dplyr::select(hgnc_id, impc_viability_2 )
 
 
 gene_list_mouse_long  <- gene_list %>%
-  select(hgnc_id, JAX, MSK, NWU, UCSF) %>%
+  dplyr::select(hgnc_id, JAX, MSK, NWU, UCSF) %>%
   pivot_longer(!hgnc_id, names_to = "center", values_to = "selected") %>%
   filter(selected !="-") %>%
-  select(hgnc_id, selected) %>%
+  dplyr::select(hgnc_id, selected) %>%
   inner_join(gene_mouse)  %>%
   distinct() %>%
-  rename(center = selected)
+  dplyr::rename(center = selected)
 
 
 gene_list_mouse_long_center <- gene_list_mouse_long %>%
   group_by(center) %>%
   tally() %>%
-  rename(n_center = n)
+  dplyr::rename(n_center = n)
 
 gene_list_mouse_long_center_via <- gene_list_mouse_long %>%
   group_by(center, impc_viability_2) %>%
@@ -132,21 +132,21 @@ plot_grid(plot_via_all, plot_via_center, nrow = 1)
 ## genes with cell data
 
 gene_list_cells <- gene_list %>%
-  select(hgnc_id, JAX, MSK, NWU, UCSF, cellular_essential) %>%
+  dplyr::select(hgnc_id, JAX, MSK, NWU, UCSF, cellular_essential) %>%
   filter(cellular_essential !="-") %>%
   mutate(cellular_essential = recode(cellular_essential, y = "Essential", n = "Non-essential"))
 
 gene_score <- gene_list_cells %>%
-  select(hgnc_id, cellular_essential)
+  dplyr::select(hgnc_id, cellular_essential)
 
 gene_list_cells_long  <- gene_list_cells %>%
-  select(hgnc_id, JAX, MSK, NWU, UCSF) %>%
+  dplyr::select(hgnc_id, JAX, MSK, NWU, UCSF) %>%
   pivot_longer(!hgnc_id, names_to = "center", values_to = "selected") %>%
   filter(selected !="-") %>%
-  select(hgnc_id, selected) %>%
+  dplyr::select(hgnc_id, selected) %>%
   inner_join(gene_score)  %>%
   distinct() %>%
-  rename(center = selected)
+  dplyr::rename(center = selected)
 
 gene_score_count <- gene_score %>%
   group_by(cellular_essential) %>%
@@ -157,7 +157,7 @@ gene_score_count <- gene_score %>%
 gene_list_score_long_all <- gene_list_cells_long  %>%
   group_by(center) %>%
   tally() %>%
-  rename(n_center = n)
+  dplyr::rename(n_center = n)
 
 gene_list_score_long_center_count <- gene_list_cells_long %>%
   group_by(center, cellular_essential) %>%
@@ -211,23 +211,23 @@ plot_grid(plot_cells_all, plot_cells_center, nrow = 1)
 ## genes associated to disease
 
 gene_list_disease <- gene_list %>%
-  select(hgnc_id, JAX, MSK, NWU, UCSF, omim, dd) %>%
+  dplyr::select(hgnc_id, JAX, MSK, NWU, UCSF, omim, dd) %>%
   mutate(omim_gene = recode(omim, "-" = "nonOMIM", omim_disease = "OMIM")) %>%
   mutate(omim_gene = factor(omim_gene, levels = c("OMIM","nonOMIM")))
 
 
 
 gene_omim <- gene_list_disease%>%
-  select(hgnc_id, omim_gene)
+  dplyr::select(hgnc_id, omim_gene)
 
 gene_list_omim_long  <- gene_list_disease %>%
-  select(hgnc_id, JAX, MSK, NWU, UCSF) %>%
+  dplyr::select(hgnc_id, JAX, MSK, NWU, UCSF) %>%
   pivot_longer(!hgnc_id, names_to = "center", values_to = "selected") %>%
   filter(selected !="-") %>%
-  select(hgnc_id, selected) %>%
+  dplyr::select(hgnc_id, selected) %>%
   inner_join(gene_omim )  %>%
   distinct() %>%
-  rename(center = selected)
+  dplyr::rename(center = selected)
 
 gene_omim_count <- gene_omim%>%
   group_by(omim_gene) %>%
@@ -238,7 +238,7 @@ gene_omim_count <- gene_omim%>%
 gene_list_omim_long_all <- gene_list_omim_long   %>%
   group_by(center) %>%
   tally() %>%
-  rename(n_center = n)
+  dplyr::rename(n_center = n)
 
 gene_list_omim_long_center_count <- gene_list_omim_long %>%
   group_by(center, omim_gene) %>%

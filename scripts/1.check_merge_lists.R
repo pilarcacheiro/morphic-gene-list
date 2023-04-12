@@ -59,10 +59,10 @@ all_symbols_check <- jax_symbols_check %>%
 all_symbols_check_wider <- all_symbols_check %>%
   pivot_wider(names_from = dpc, values_from = dpc) %>%
   replace(is.na(.),"-") %>%
-  left_join(jax %>% select(1,2), by = c("gene_symbol" = "Gene Symbol")) %>%
-  rename(JAX_MorPhiC_Code = "JAX MorPhiC Code") %>%
+  left_join(jax %>% dplyr::select(1,2), by = c("gene_symbol" = "Gene Symbol")) %>%
+  dplyr::rename(JAX_MorPhiC_Code = "JAX MorPhiC Code") %>%
   left_join(msk, by = c("gene_symbol" = "Gene_Symbol")) %>%
-  rename(MSK_category = `Gene Category`) %>%
+  dplyr::rename(MSK_category = `Gene Category`) %>%
   relocate(gene_symbol) %>%
   replace(is.na(.),"-")
 
