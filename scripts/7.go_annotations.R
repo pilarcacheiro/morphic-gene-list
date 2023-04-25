@@ -17,14 +17,12 @@ library("clusterProfiler")
 
 #BiocManager::install("org.Hs.eg.db")
 library("org.Hs.eg.db")
+library("GO.db")
 
 # import data -------------------------------------------------------------
 
 gene_list <- read_delim ("./data/processed/gene_lists_merged.txt") %>%
-  dplyr::select(gene_symbol, JAX, MSK, NWU, UCSF)
-
-
-
+  dplyr::select(hgnc_id, JAX, MSK, NWU, UCSF)
 
 # retrieve only the annotations -------------------------------------------
 
@@ -83,28 +81,28 @@ write.table(gene_list_go_hgnc,
 
 
 genes_universe <- read_delim("http://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/tsv/locus_types/gene_with_protein_product.txt") %>%
-  dplyr::select(symbol, entrez_id)
+  dplyr::select(hgnc_id, entrez_id)
 
 jax <- gene_list %>%
-  inner_join(genes_universe, by = c("gene_symbol" = "symbol")) %>%
+  inner_join(genes_universe, by = c("hgnc_id" = "hgnc_id")) %>%
   filter(JAX == "JAX") %>%
   pull(entrez_id) %>%
   as.character(.)
 
 msk <- gene_list %>%
-  inner_join(genes_universe, by = c("gene_symbol" = "symbol")) %>%
+  inner_join(genes_universe, by = c("hgnc_id" = "hgnc_id")) %>%
   filter(MSK == "MSK") %>%
   pull(entrez_id) %>%
   as.character(.)
 
 nwu <- gene_list %>%
-  inner_join(genes_universe, by = c("gene_symbol" = "symbol")) %>%
+  inner_join(genes_universe, by = c("hgnc_id" = "hgnc_id")) %>%
   filter(NWU == "NWU") %>%
   pull(entrez_id) %>%
   as.character(.)
 
 ucsf <- gene_list %>%
-  inner_join(genes_universe, by = c("gene_symbol" = "symbol")) %>%
+  inner_join(genes_universe, by = c("hgnc_id" = "hgnc_id")) %>%
   filter(UCSF == "UCSF") %>%
   pull(entrez_id) %>%
   as.character(.)
